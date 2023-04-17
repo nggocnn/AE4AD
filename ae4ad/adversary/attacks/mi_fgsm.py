@@ -1,8 +1,7 @@
-import numpy as np
 import tensorflow as tf
 
-from ae4ad.attacks.fgsm import FGSM
-from ae4ad.attacks.utils import compute_gradient, optimize_linear, clip_eta
+from ae4ad.adversary.attacks.fgsm import FGSM
+from ae4ad.adversary.utils import compute_gradient
 
 
 class MI_FGSM(FGSM):
@@ -62,11 +61,11 @@ class MI_FGSM(FGSM):
 
             momentum = self.decay_factor * momentum + grad
 
-            optimal_perturbation = optimize_linear(momentum, self.eps_iter, norm=np.inf)
+            eta = tf.multiply(self.eps, tf.stop_gradient(tf.sign(grad)))
 
-            x_adv = x_adv + optimal_perturbation
+            x_adv = x_adv + eta
 
-            x_adv = x + clip_eta(x_adv - x, np.inf, self.eps)
+            x_adv = x + tf.clip_by_value(x_adv - x, -self.eps, self.eps)
 
             if self.clip_min is not None and self.clip_max is not None:
                 x_adv = tf.clip_by_value(x_adv, self.clip_min, self.clip_max)

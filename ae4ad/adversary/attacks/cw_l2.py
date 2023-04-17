@@ -1,13 +1,17 @@
 import numpy as np
 import tensorflow as tf
 
-from ae4ad.attacks.utils import set_with_mask, get_or_guess_labels
+from tqdm import tqdm
+
+from ae4ad.adversary.utils import set_with_mask, get_or_guess_labels
+from ae4ad.utils.utils import data_filter
 
 
 class CarliniWagnerL2(object):
     def __init__(
             self,
             model_fn,
+            x,
             y=None,
             batch_size=128,
             clip_min=0.0,
@@ -29,6 +33,8 @@ class CarliniWagnerL2(object):
         else:
             self.model_fn = model_fn
 
+        self.x = x
+
         self.batch_size = batch_size
 
         self.y = y
@@ -49,12 +55,17 @@ class CarliniWagnerL2(object):
 
         super(CarliniWagnerL2, self).__init__()
 
-    def attack(self, x):
-        x_adv = np.zeros_like(x)
-        for i in range(0, len(x), self.batch_size):
-            x_adv[i: i + self.batch_size] = self._attack(x[i: i + self.batch_size]).numpy()
+    def attack(self):
+        x_adv = np.zeros_like(self.x)
+        for i in tqdm(
+                range(0, len(self.x), self.batch_size),
+                desc=f'Attacking batch of {self.batch_size} images: '
+        ):
+            x_adv[i: i + self.batch_size] = self._attack(self.x[i: i + self.batch_size]).numpy()
 
-        return x_adv
+        indexes = data_filter(self.model_fn, x_adv, self.y, self.batch_size, equal=False)
+
+        return x_adv[indexes], self.x[indexes], self.y[indexes]
 
     def _attack(self, x):
 

@@ -3,6 +3,8 @@ import tensorflow as tf
 
 from tqdm import tqdm
 
+from ae4ad.utils.utils import data_filter
+
 
 class AdversarialGauss:
     def __init__(
@@ -49,17 +51,20 @@ class AdversarialGauss:
         for i in tqdm(range(len(self.x)), desc=f'Attacking: '):
             x_adv[i] = self._attack(self.x[i])
 
-        return x_adv
+        indexes = data_filter(self.model_fn, x_adv, self.y, 1, equal=False)
+
+        return x_adv[indexes], self.x[indexes], self.y[indexes]
 
     def _attack(self, x):
         x_adv = x
         for i in range(self.n_iters):
-            eta = self.eps * np.random.normal(
+            eta = self.eps_iter * np.random.normal(
                 loc=self.mu,
                 scale=self.sigma,
                 size=x.shape
             )
 
             x_adv = np.clip(x_adv + eta, self.clip_min, self.clip_max)
+            x_adv = x + np.clip(x_adv - x, -self.eps, self.eps)
 
         return x_adv

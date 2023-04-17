@@ -1,8 +1,9 @@
 import numpy as np
 import tensorflow as tf
-
 from tqdm import tqdm
-from ae4ad.attacks.utils import compute_gradient, optimize_linear
+
+from ae4ad.adversary.utils import compute_gradient
+from ae4ad.utils.utils import data_filter
 
 
 class FGSM:
@@ -51,7 +52,11 @@ class FGSM:
             y_batch = self.y[i: i + self.batch_size]
             x_adv[i: i + self.batch_size] = self._attack(x_batch, y_batch).numpy()
 
-        return x_adv
+        indexes = data_filter(self.model_fn, x_adv, self.y, self.batch_size, equal=False)
+
+        return x_adv[indexes], self.x[indexes], self.y[indexes]
+
+
 
     def _attack(self, x, y):
 
@@ -62,7 +67,7 @@ class FGSM:
             self.targeted = False
 
         grad = compute_gradient(self.model_fn, self.loss_fn, x, y, self.targeted)
-        eta = optimize_linear(grad, self.eps, norm=np.inf)
+        eta = tf.multiply(self.eps, tf.stop_gradient(tf.sign(grad)))
 
         x_adv = x + eta
 

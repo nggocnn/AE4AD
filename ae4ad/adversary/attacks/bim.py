@@ -1,7 +1,6 @@
-import numpy as np
+import tensorflow as tf
 
-from ae4ad.attacks.fgsm import FGSM
-from ae4ad.attacks.utils import clip_eta
+from ae4ad.adversary.attacks.fgsm import FGSM
 
 
 class BIM(FGSM):
@@ -40,6 +39,6 @@ class BIM(FGSM):
         x_adv = x
         for i in range(self.n_iters):
             x_adv = super()._attack(x_adv, y)
-            x_adv = x + clip_eta(x_adv - x, np.inf, self.eps)
+            x_adv = x + tf.clip_by_value(x_adv - x, -self.eps, self.eps)
 
         return x_adv
