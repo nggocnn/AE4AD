@@ -1,3 +1,5 @@
+import os.path
+
 import numpy as np
 import tensorflow as tf
 
@@ -45,3 +47,38 @@ def set_with_mask(x, x_other, mask):
     mask = tf.cast(mask, x.dtype)
     ones = tf.ones_like(mask, dtype=x.dtype)
     return x_other * mask + x * (ones - mask)
+
+
+def export_adversarial_npy(folder, name, prefix, suffix, data, separate_folder):
+
+    assert isinstance(data, list)
+
+    for i in range(len(data)):
+        if isinstance(prefix, list):
+            assert len(prefix) == len(data)
+            if separate_folder:
+                save_folder = os.path.join(folder, prefix[i])
+                save_name = f'{name}'
+            else:
+                save_folder = folder
+                save_name = f'{prefix[i]}_{name}'
+        else:
+            if separate_folder:
+                save_folder = os.path.join(folder, prefix)
+                save_name = f'{name}'
+            else:
+                save_folder = folder
+                save_name = f'{prefix}_{name}'
+
+        if isinstance(suffix, list):
+            assert len(suffix) == len(data)
+            save_name = f'{save_name}{("_" + str(suffix[i])) if suffix[i] is not None else ""}.npy'
+        else:
+            save_name = f'{save_name}{("_" + str(suffix)) if suffix is not None else ""}.npy'
+
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder)
+
+        save_path = os.path.join(save_folder, save_name)
+
+        np.save(save_path, data[i])

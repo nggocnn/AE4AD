@@ -22,6 +22,7 @@ class CarliniWagnerL2(object):
             confidence=0.0,
             initial_const=1e-2,
             learning_rate=5e-3,
+            targeted=False
     ):
         self.model_fn = None
 
@@ -38,7 +39,7 @@ class CarliniWagnerL2(object):
         self.batch_size = batch_size
 
         self.y = y
-        self.targeted = y is not None
+        self.targeted = targeted
 
         self.clip_min = clip_min
         self.clip_max = clip_max
@@ -61,22 +62,24 @@ class CarliniWagnerL2(object):
                 range(0, len(self.x), self.batch_size),
                 desc=f'Attacking batch of {self.batch_size} images: '
         ):
-            x_adv[i: i + self.batch_size] = self._attack(self.x[i: i + self.batch_size]).numpy()
+            x_batch = self.x[i: i + self.batch_size]
+            y_batch = self.y[i: i + self.batch_size]
+            x_adv[i: i + self.batch_size] = self._attack(x_batch, y_batch).numpy()
 
         indexes = data_filter(self.model_fn, x_adv, self.y, self.batch_size, equal=False)
 
         return x_adv[indexes], self.x[indexes], self.y[indexes]
 
-    def _attack(self, x):
+    def _attack(self, x, y):
 
         original_x = tf.cast(x, tf.float32)
         shape = original_x.shape
 
-        y, _ = get_or_guess_labels(
-            self.model_fn, original_x, y=self.y, targeted=self.targeted
+        y_, _ = get_or_guess_labels(
+            self.model_fn, original_x, y=y, targeted=self.targeted
         )
 
-        if not y.shape.as_list()[0] == original_x.shape.as_list()[0]:
+        if not y_.shape.as_list()[0] == original_x.shape.as_list()[0]:
             raise ValueError("x and y do not have the same shape!")
 
         # re-scale x to [0, 1]
@@ -129,7 +132,7 @@ class CarliniWagnerL2(object):
             prev = None
 
             for iteration in range(self.max_iterations):
-                x_new, loss, preds, l2_dist = self.attack_step(x, y, modifier, const)
+                x_new, loss, preds, l2_dist = self.attack_step(x, y_, modifier, const)
 
                 # check if we made progress, abort otherwise
                 if (
@@ -141,7 +144,7 @@ class CarliniWagnerL2(object):
 
                     prev = loss
 
-                lab = tf.argmax(y, axis=1)
+                lab = tf.argmax(y_, axis=1)
 
                 pred_with_conf = (
                     preds - self.confidence
@@ -179,7 +182,7 @@ class CarliniWagnerL2(object):
                 best_attack = set_with_mask(best_attack, x_new, mask)
 
             # adjust binary search parameters
-            lab = tf.argmax(y, axis=1)
+            lab = tf.argmax(y_, axis=1)
             lab = tf.cast(lab, tf.int32)
 
             # we first compute the mask for the upper bound

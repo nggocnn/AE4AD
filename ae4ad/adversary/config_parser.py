@@ -28,6 +28,8 @@ class AdversarialConfig:
 
         self.adversarial_config = {}
 
+        self.config_parse()
+
     def config_parse(self):
         if self.config.__contains__(GENERAL_CONFIG):
             # load general configuration keys
@@ -37,7 +39,7 @@ class AdversarialConfig:
             if self.general_config.__contains__(OUTPUT_PATH):
                 self.output_path = self.general_config[OUTPUT_PATH]
 
-            if self.output_path is None:
+            if self.output_path is None or self.output_path == "":
                 self.output_path = DEFAULT_OUTPUT_PATH
 
             if not os.path.exists(self.output_path):
@@ -58,7 +60,7 @@ class AdversarialConfig:
 
                 logger.info(message)
 
-                self.target_classifier = load_model
+                self.target_classifier = classifier
                 self.classifier_name = classifier_name
                 self.input_shape = classifier.inputs[0].shape[1:]
                 self.output_shape = classifier.outputs[0].shape[1:]
@@ -72,7 +74,7 @@ class AdversarialConfig:
                 else:
                     logger.warning('Please check input range configuration!')
 
-            logger.info(f'Range of input value is set to {str(self.input_shape)}.')
+            logger.info(f'Range of input value is set to {str(self.input_range)}.')
 
             # load images set and labels set
             if self.general_config.__contains__(IMAGES_FILE_PATH) and \
@@ -82,7 +84,7 @@ class AdversarialConfig:
                 self.labels = load_data_from_npy(self.general_config[LABELS_FILE_PATH])
 
                 # validate value range of images
-                if np.min(self.images) <= self.input_range[0] or np.max(self.images) >= self.input_range[1]:
+                if np.min(self.images) < self.input_range[0] or np.max(self.images) > self.input_range[1]:
                     raise ValueError(f'Value range of images data is not valid '
                                      f'(min={np.min(self.images)}, max={np.max(self.images)}).')
 
@@ -111,6 +113,15 @@ class AdversarialConfig:
                     self.labels = tf.keras.utils.to_categorical(self.labels, self.n_classes)
                     logger.debug(f'Labels\' shape after converted to one-hot vectors: {self.labels.shape[1:]}.')
 
+                indexes = data_filter(self.target_classifier, self.images, self.labels, 32, verbose=False)
+
+                self.images = self.images[indexes]
+                self.labels = self.labels[indexes]
+
+                logger.info(f'Number of correct-predicted images: {len(self.images)}.')
+            else:
+                raise ValueError('Not found configurations for input data')
+
             # load length's limitation
             if self.general_config.__contains__(LIMIT_PER_LABEL):
                 self.limit = self.general_config[LIMIT_PER_LABEL]
@@ -118,7 +129,7 @@ class AdversarialConfig:
             if self.limit == 0:
                 logger.info('Adversarial examples are being generated from full dataset.')
             else:
-                logger.info(f'Adversarial examples are being generated from maximum {self.limit} data points.')
+                logger.info(f'Adversarial examples are being generated from maximum {self.limit} data points each label.')
 
             logger.info('Loaded general configurations completely!')
         else:

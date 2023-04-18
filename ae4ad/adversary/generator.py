@@ -1,8 +1,11 @@
 import numpy as np
 
-from ae4ad.adversary.attacks import fgsm, bim, mi_fgsm, cw_l2
+from datetime import datetime
+
+from ae4ad.adversary.attacks import fgsm, bim, mi_fgsm, cw_l2, gauss
 from ae4ad.adversary.config_parser import AdversarialConfig
 from ae4ad.adversary.const import *
+from ae4ad.adversary.utils import export_adversarial_npy
 from ae4ad.utils.logger import AE4AD_Logger
 
 logger = AE4AD_Logger.get_logger()
@@ -12,39 +15,33 @@ class AdversarialGenerator:
     def __init__(self, config: AdversarialConfig):
         self.config = config
 
-        self.output_folder = self.config.output_path
+        self.output_path = self.config.output_path
         self.target_classifier = self.config.target_classifier
         self.classifier_name = self.config.classifier_name
 
         self.images = self.config.images
         self.labels = self.config.labels
 
-        pred_labels = np.zeros_like(self.labels)
-
-        for i in range(0, len(self.images), 32):
-            pred_labels[i: i + 32] = self.target_classifier(self.images[i: i + 32])
-
-        true_pred_indexes = np.where(np.argmax(self.labels, axis=1) == np.argmax(pred_labels, axis=1))
-
-        self.images = self.images[true_pred_indexes]
-        self.labels = self.labels[true_pred_indexes]
-
-        self.limit = self.config.limit
+        self.limit = int(self.config.limit)
         if self.limit > 0:
             _, counts = zip(np.unique(self.labels, axis=0, return_counts=True))
 
-            self.limit = np.min(counts)
-            logger.warning(f'Smallest numbers of images belongs to label {np.argmin(counts)} ({self.limit}).')
+            if self.limit > np.min(counts):
+                self.limit = np.min(counts)
+                logger.warning(f'Smallest numbers of images belongs to label {np.argmin(counts)} ({self.limit}).')
+
             logger.warning(f'Set limitation of each label to {self.limit}.')
 
-            labels_indices = [np.where(self.labels[: i] == 1)[0] for i in range(self.config.n_classes)]
+            labels_one = np.argmax(self.labels, axis=1)
+            labels_indices = [np.where(labels_one == i)[0] for i in range(self.config.n_classes)]
 
             balanced_images = []
             balanced_labels = []
             for indices in labels_indices:
                 np.random.shuffle(indices)
-                balanced_images.append(self.images[indices[:self.limit]])
-                balanced_labels.append(self.labels[indices[:self.limit]])
+                indices_ = indices[:self.limit]
+                balanced_images.append(self.images[indices_])
+                balanced_labels.append(self.labels[indices_])
 
             self.images = np.concatenate(balanced_images)
             self.labels = np.concatenate(balanced_labels)
@@ -53,7 +50,7 @@ class AdversarialGenerator:
 
         self.adversarial_config = self.config.adversarial_config
 
-    def adversary_generate(self):
+    def run(self):
         for key in self.adversarial_config.keys():
             try:
                 if key == FGSM:
@@ -73,10 +70,19 @@ class AdversarialGenerator:
                                 batch_size=int(fgsm_config[BATCH_SIZE]),
                                 clip_min=self.config.input_range[0],
                                 clip_max=self.config.input_range[1],
-                                targeted=bool(fgsm_config[TARGETED])
+                                targeted=bool(fgsm_config[TARGETED] == TRUE)
                             )
 
-                            x_adv = fgsm_generator.attack()
+                            x_adv, x_origin, y_origin = fgsm_generator.attack()
+
+                            logger.info(f'Number of successful adversarial examples: '
+                                        f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
+
+                            data = [x_adv, x_origin, y_origin]
+                            prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                            suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
+                            export_adversarial_npy(self.output_path, str(key), prefix, suffix, data,
+                                                   separate_folder=True)
 
                 elif key == BIM:
                     bim_config = self.adversarial_config[key]
@@ -97,10 +103,19 @@ class AdversarialGenerator:
                                 batch_size=int(bim_config[BATCH_SIZE]),
                                 clip_min=self.config.input_range[0],
                                 clip_max=self.config.input_range[1],
-                                targeted=bool(bim_config[TARGETED])
+                                targeted=bool(bim_config[TARGETED] == TRUE)
                             )
 
-                            x_adv = bim_generator.attack()
+                            x_adv, x_origin, y_origin = bim_generator.attack()
+
+                            logger.info(f'Number of successful adversarial examples: '
+                                        f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
+
+                            data = [x_adv, x_origin, y_origin]
+                            prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                            suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
+                            export_adversarial_npy(self.output_path, str(key), prefix, suffix, data,
+                                                   separate_folder=True)
 
                 elif key == MI_FGSM:
                     mi_fgsm_config = self.adversarial_config[key]
@@ -122,10 +137,19 @@ class AdversarialGenerator:
                                 clip_min=self.config.input_range[0],
                                 clip_max=self.config.input_range[1],
                                 decay_factor=float(mi_fgsm_config[DECAY_FACTOR]),
-                                targeted=bool(mi_fgsm_config[TARGETED])
+                                targeted=bool(mi_fgsm_config[TARGETED] == TRUE)
                             )
 
-                            x_adv = mi_fgsm_generator.attack()
+                            x_adv, x_origin, y_origin = mi_fgsm_generator.attack()
+
+                            logger.info(f'Number of successful adversarial examples: '
+                                        f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
+
+                            data = [x_adv, x_origin, y_origin]
+                            prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                            suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
+                            export_adversarial_npy(self.output_path, str(key), prefix, suffix, data,
+                                                   separate_folder=True)
 
                 elif key == CW_L2:
                     cw_l2_config = self.adversarial_config[key]
@@ -139,12 +163,52 @@ class AdversarialGenerator:
                             cw_generator = cw_l2.CarliniWagnerL2(
                                 model_fn=self.target_classifier,
                                 x=self.images,
+                                y=self.labels,
                                 batch_size=int(cw_l2_config[BATCH_SIZE]),
                                 clip_min=self.config.input_range[0],
                                 clip_max=self.config.input_range[1],
                                 confidence=float(conf)
                             )
 
-                            x_adv = cw_generator.attack()
+                            x_adv, x_origin, y_origin = cw_generator.attack()
+
+                            logger.info(f'Number of successful adversarial examples: '
+                                        f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
+
+                            data = [x_adv, x_origin, y_origin]
+                            prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                            suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
+                            export_adversarial_npy(self.output_path, str(key), prefix, suffix, data,
+                                                   separate_folder=True)
+                elif key == GAUSS:
+                    gauss_config = self.adversarial_config[GAUSS]
+                    if gauss_config[ENABLE] == TRUE:
+                        epsilon_list = gauss_config[EPSILON]
+                        if not isinstance(epsilon_list, list):
+                            epsilon_list = [epsilon_list]
+
+                        for epsilon in epsilon_list:
+                            logger.info(f'Generating adversarial examples with {key}: {epsilon}.')
+                            gauss_generator = gauss.AdversarialGauss(
+                                model_fn=self.target_classifier,
+                                x=self.images,
+                                y=self.labels,
+                                eps=float(gauss_config[MAX_BALL]),
+                                eps_iter=float(epsilon),
+                                n_iters=int(gauss_config[N_ITERATIONS]),
+                                clip_min=self.config.input_range[0],
+                                clip_max=self.config.input_range[1],
+                            )
+
+                            x_adv, x_origin, y_origin = gauss_generator.attack()
+
+                            logger.info(f'Number of successful adversarial examples: '
+                                        f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
+
+                            data = [x_adv, x_origin, y_origin]
+                            prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                            suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
+                            export_adversarial_npy(self.output_path, str(key), prefix, suffix, data,
+                                                   separate_folder=True)
             except Exception as e:
                 logger.debug(e)

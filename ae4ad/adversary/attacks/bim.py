@@ -18,7 +18,7 @@ class BIM(FGSM):
             clip_max=1.0,
             targeted=False,
     ):
-        assert eps_iter <= eps
+        assert eps_iter <= eps, f'epsilon ({eps_iter}) must be less than or equal to max ball ({eps})'
 
         super().__init__(
             model_fn,

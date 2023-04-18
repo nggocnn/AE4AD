@@ -34,7 +34,7 @@ class FGSM:
         self.model_fn = model_fn
         self.x = x
         self.y = y
-        self.eps = eps,
+        self.eps = eps
         self.loss_fn = tf.nn.softmax_cross_entropy_with_logits if loss_fn is None else loss_fn
         self.batch_size = batch_size
         self.clip_min = clip_min
@@ -45,8 +45,8 @@ class FGSM:
         x_adv = np.zeros_like(self.x)
 
         for i in tqdm(
-            range(0, len(self.x), self.batch_size),
-            desc=f'Attacking batch of {self.batch_size} images: '
+                range(0, len(self.x), self.batch_size),
+                desc=f'Attacking batch of {self.batch_size} images: '
         ):
             x_batch = self.x[i: i + self.batch_size]
             y_batch = self.y[i: i + self.batch_size]
@@ -55,8 +55,6 @@ class FGSM:
         indexes = data_filter(self.model_fn, x_adv, self.y, self.batch_size, equal=False)
 
         return x_adv[indexes], self.x[indexes], self.y[indexes]
-
-
 
     def _attack(self, x, y):
 

@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 import tensorflow as tf
 
-H5_EXTENSION = 'h5'
+H5_EXTENSION = '.h5'
 NP_EXTENSION = '.npy'
 
 
@@ -45,9 +45,9 @@ def load_model(model_file_path: str):
         model, model_name, success, message = load_model_from_h5(model_file_path)
 
     if success:
-        message = f'Successfully loaded model {message}.'
+        message = f'Successfully loaded model. {message}'
     else:
-        message = f'Failed to load model from {message}.'
+        message = f'Failed to load model from. {message}'
 
     return model, model_name, success, message
 
@@ -79,7 +79,7 @@ def load_model_from_folder(model_folder_path: str):
 
 def load_data_from_npy(npy_file_path: str):
     if not os.path.isfile(npy_file_path):
-        raise FileNotFoundError(f'Not found numpy binary file {npy_file_path}')
+        raise FileNotFoundError(f'Not found numpy binary file {npy_file_path}.')
 
     splitext = os.path.splitext(npy_file_path)
 
@@ -99,11 +99,11 @@ def load_data_from_npy(npy_file_path: str):
 #                              f'It needs to be numeric as class labels.')
 
 
-def data_filter(model_fn, x, y, batch_size, equal=True):
+def data_filter(model_fn, x, y, batch_size, equal=True, verbose=True):
     y_ = np.zeros_like(y)
-    for i in tqdm(range(0, len(x), batch_size), desc=f'Filtering images: '):
+    for i in tqdm(range(0, len(x), batch_size), desc=f'Filtering images: ', disable=(not verbose)):
         y_[i: i + batch_size] = model_fn(x[i: i + batch_size])
     if equal:
-        return np.where(np.argmax(y_, axis=1) == np.argmax(y, axis=1))
+        return np.where(np.argmax(y_, axis=1) == np.argmax(y, axis=1))[0]
     else:
-        return np.where(np.argmax(y_, axis=1) != np.argmax(y, axis=1))
+        return np.where(np.argmax(y_, axis=1) != np.argmax(y, axis=1))[0]
