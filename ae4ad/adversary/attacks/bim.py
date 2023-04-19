@@ -9,8 +9,7 @@ class BIM(FGSM):
             model_fn,
             x,
             y,
-            eps=0.3,
-            eps_iter=0.06,
+            eps=0.039,
             n_iters=10,
             loss_fn=None,
             batch_size=128,
@@ -18,7 +17,6 @@ class BIM(FGSM):
             clip_max=1.0,
             targeted=False,
     ):
-        assert eps_iter <= eps, f'epsilon ({eps_iter}) must be less than or equal to max ball ({eps})'
 
         super().__init__(
             model_fn,
@@ -32,13 +30,11 @@ class BIM(FGSM):
             targeted
         )
 
-        self.eps_iter = eps_iter
         self.n_iters = n_iters
 
     def _attack(self, x, y):
         x_adv = x
         for i in range(self.n_iters):
             x_adv = super()._attack(x_adv, y)
-            x_adv = x + tf.clip_by_value(x_adv - x, -self.eps, self.eps)
 
         return x_adv

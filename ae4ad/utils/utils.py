@@ -104,6 +104,10 @@ def data_filter(model_fn, x, y, batch_size, equal=True, verbose=True):
     for i in tqdm(range(0, len(x), batch_size), desc=f'Filtering images: ', disable=(not verbose)):
         y_[i: i + batch_size] = model_fn(x[i: i + batch_size])
     if equal:
-        return np.where(np.argmax(y_, axis=1) == np.argmax(y, axis=1))[0]
+        indices = np.where(np.argmax(y_, axis=1) == np.argmax(y, axis=1))[0],
+        y_ = y_[indices]
+        return indices, y_
     else:
-        return np.where(np.argmax(y_, axis=1) != np.argmax(y, axis=1))[0]
+        indices = np.where(np.argmax(y_, axis=1) != np.argmax(y, axis=1))[0]
+        y_ = y_[indices]
+        return indices, y_

@@ -66,9 +66,9 @@ class CarliniWagnerL2(object):
             y_batch = self.y[i: i + self.batch_size]
             x_adv[i: i + self.batch_size] = self._attack(x_batch, y_batch).numpy()
 
-        indexes = data_filter(self.model_fn, x_adv, self.y, self.batch_size, equal=False)
+        indexes, y_adv = data_filter(self.model_fn, x_adv, self.y, self.batch_size, equal=False)
 
-        return x_adv[indexes], self.x[indexes], self.y[indexes]
+        return x_adv[indexes], self.x[indexes], y_adv, self.y[indexes]
 
     def _attack(self, x, y):
 

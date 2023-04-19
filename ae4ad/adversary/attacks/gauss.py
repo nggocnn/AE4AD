@@ -51,9 +51,9 @@ class AdversarialGauss:
         for i in tqdm(range(len(self.x)), desc=f'Attacking: '):
             x_adv[i] = self._attack(self.x[i])
 
-        indexes = data_filter(self.model_fn, x_adv, self.y, 1, equal=False)
+        indexes, y_adv = data_filter(self.model_fn, x_adv, self.y, 32, equal=False)
 
-        return x_adv[indexes], self.x[indexes], self.y[indexes]
+        return x_adv[indexes], self.x[indexes], y_adv, self.y[indexes]
 
     def _attack(self, x):
         x_adv = x

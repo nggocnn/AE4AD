@@ -3,6 +3,7 @@ import os.path
 import numpy as np
 import tensorflow as tf
 
+from matplotlib import pyplot as plt, gridspec
 
 @tf.function
 def compute_gradient(model_fn, loss_fn, x, y, targeted):
@@ -82,3 +83,20 @@ def export_adversarial_npy(folder, name, prefix, suffix, data, separate_folder):
         save_path = os.path.join(save_folder, save_name)
 
         np.save(save_path, data[i])
+
+
+def save_adversarial_samples(figname, x_adv, x_origin, y_adv, y_origin, shape, n=10, dpi=600):
+    fig, axs = plt.subplots(nrows=n, ncols=2, figsize=(10, 15))
+    indices = np.random.randint(low=0, high=len(x_adv), size=n)
+    for i in range(n):
+        idx = indices[i]
+        axs[i, 0].imshow(x_origin[idx].reshape(shape))
+        axs[i, 0].set_title(f'Original image - label {y_origin[idx]}')
+        axs[i, 0].axis('off')
+
+        axs[i, 1].imshow(x_adv[idx].reshape(shape))
+        axs[i, 1].set_title(f'Original image - label {y_adv[idx]} - L2 {np.linalg.norm(x_adv - x_origin):.4f}')
+        axs[i, 1].axis('off')
+
+    fig.savefig(figname, bbox_inches='tight', dpi=dpi)
+
