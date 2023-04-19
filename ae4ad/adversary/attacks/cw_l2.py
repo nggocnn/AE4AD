@@ -28,7 +28,7 @@ class CarliniWagnerL2(object):
 
         if isinstance(model_fn.layers[-1], tf.keras.layers.Softmax):
             self.model_fn = tf.keras.models.Model(model_fn.inputs, model_fn.layers[-2].output)
-        elif model_fn.layers[-1].activation == tf.keras.activations.softmax:
+        elif hasattr(model_fn.layers[-1], 'activation') and model_fn.layers[-1].activation == tf.keras.activations.softmax:
             model_fn.layers[-1].activation = tf.keras.activations.linear
             self.model_fn = model_fn
         else:
@@ -97,7 +97,7 @@ class CarliniWagnerL2(object):
         lower_bound = tf.zeros(shape[:1])
         upper_bound = tf.ones(shape[:1]) * 1e10
 
-        const = tf.ones(shape) * self.initial_const
+        const = tf.ones(shape[:1]) * self.initial_const
 
         # placeholder variables for best values
         best_l2 = tf.fill(shape[:1], 1e10)
