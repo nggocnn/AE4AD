@@ -147,6 +147,8 @@ class AdversarialConfig:
 
         self.adversarial_config[MI_FGSM] = self.config[MI_FGSM] if self.config.__contains__(MI_FGSM) else None
 
+        self.adversarial_config[GAUSS] = self.config[GAUSS] if self.config.__contains__(GAUSS) else None
+
         self.adversarial_config[CW_L2] = self.config[CW_L2] if self.config.__contains__(CW_L2) else None
 
-        self.adversarial_config[GAUSS] = self.config[GAUSS] if self.config.__contains__(GAUSS) else None
+
