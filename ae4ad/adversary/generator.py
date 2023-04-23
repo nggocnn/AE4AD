@@ -81,13 +81,13 @@ class AdversarialGenerator:
                                     f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
 
                         data = [x_adv, x_origin, y_origin]
-                        prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                        prefix = [f'adv', f'origin', f'label']
                         suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
                         export_adversarial_npy(self.output_path, str(key), prefix, f'{epsilon}_{suffix}', data,
                                                separate_folder=True)
 
                         save_adversarial_samples(
-                            os.path.join(self.output_path, f'{key}/adversarial_sample_{epsilon}_{suffix}.png'),
+                            os.path.join(self.output_path, f'{key}_adversarial_sample_{epsilon}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
                             shape=self.image_shape
                         )
@@ -119,13 +119,13 @@ class AdversarialGenerator:
                                     f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
 
                         data = [x_adv, x_origin, y_origin]
-                        prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                        prefix = [f'adv', f'origin', f'label']
                         suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
                         export_adversarial_npy(self.output_path, str(key), prefix, f'{epsilon}_{suffix}', data,
                                                separate_folder=True)
 
                         save_adversarial_samples(
-                            os.path.join(self.output_path, f'{key}/adversarial_sample_{epsilon}_{suffix}.png'),
+                            os.path.join(self.output_path, f'{key}_{epsilon}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
                             shape=self.image_shape
                         )
@@ -159,13 +159,13 @@ class AdversarialGenerator:
                                     f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
 
                         data = [x_adv, x_origin, y_origin]
-                        prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                        prefix = [f'adv', f'origin', f'label']
                         suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
                         export_adversarial_npy(self.output_path, str(key), prefix, f'{epsilon}_{suffix}', data,
                                                separate_folder=True)
 
                         save_adversarial_samples(
-                            os.path.join(self.output_path, f'{key}/adversarial_sample_{epsilon}_{suffix}.png'),
+                            os.path.join(self.output_path, f'{key}_adversarial_sample_{epsilon}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
                             shape=self.image_shape
                         )
@@ -195,13 +195,13 @@ class AdversarialGenerator:
                                     f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
 
                         data = [x_adv, x_origin, y_origin]
-                        prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                        prefix = [f'adv', f'origin', f'label']
                         suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
                         export_adversarial_npy(self.output_path, str(key), prefix, f'{conf}_{suffix}', data,
                                                separate_folder=True)
 
                         save_adversarial_samples(
-                            os.path.join(self.output_path, f'{key}/adversarial_sample_{conf}_{suffix}.png'),
+                            os.path.join(self.output_path, f'{key}_adversarial_sample_{conf}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
                             shape=self.image_shape
                         )
@@ -232,13 +232,13 @@ class AdversarialGenerator:
                                     f'{len(x_adv)} ({(len(x_adv) / len(self.images)) * 100 :2.2f}%)')
 
                         data = [x_adv, x_origin, y_origin]
-                        prefix = [f'{key}/adv', f'{key}/origin', f'{key}/label']
+                        prefix = [f'adv', f'origin', f'label']
                         suffix = str(datetime.now().strftime('%d%m%d-%H%M%S'))
                         export_adversarial_npy(self.output_path, str(key), prefix, f'{epsilon}_{suffix}', data,
                                                separate_folder=True)
 
                         save_adversarial_samples(
-                            os.path.join(self.output_path, f'{key}/adversarial_sample_{epsilon}_{suffix}.png'),
+                            os.path.join(self.output_path, f'{key}_adversarial_sample_{epsilon}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
                             shape=self.image_shape
                         )
