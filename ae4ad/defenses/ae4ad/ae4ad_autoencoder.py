@@ -7,6 +7,7 @@ from tensorflow.keras import models, layers, optimizers, callbacks
 
 from sklearn.model_selection import train_test_split
 
+from ae4ad.defenses.ae4ad.config_parser import AE4AD_Config
 from ae4ad.utils.logger import AE4AD_Logger
 from ae4ad.defenses.callbacks import CheckClassifierAccuracy
 
@@ -14,14 +15,14 @@ from ae4ad.defenses.callbacks import CheckClassifierAccuracy
 logger = AE4AD_Logger.get_logger()
 
 
-class Autoencoder:
-    def __init__(self, config):
+class AE4AD_Autoencoder:
+    def __init__(self, config: AE4AD_Config):
         self.model = None
         self.config = config
         self.build()
         self.compile()
         self.checkpoint_path = f'{self.config.autoencoder_path}/autoencoder_' \
-                               f'{self.config.target_classifier_name}'
+                               f'{self.config.classifier_name}'
 
         self.callbacks = []
 
@@ -40,20 +41,20 @@ class Autoencoder:
 
     def build(self):
         model = models.Sequential([
-            layers.Input(shape=self.config.input_shape),
+            layers.Input(shape=self.config.image_shape),
             layers.Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1), activation='relu', padding='same'),
             layers.BatchNormalization(),
             layers.Conv2D(filters=32, kernel_size=(3, 3), strides=(2, 2), activation='relu', padding='same'),
             layers.Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1), activation='relu', padding='same'),
             layers.BatchNormalization(),
             layers.UpSampling2D(),
-            layers.Conv2DTranspose(filters=32, kernel_size=(3, 3), strides=(2, 2), activation='relu', padding='same'),
+            layers.Conv2DTranspose(filters=32, kernel_size=(3, 3), strides=(1, 1), activation='relu', padding='same'),
             layers.BatchNormalization(),
-            layers.Conv2D(filters=self.config.input_shape[-1],
+            layers.Conv2D(filters=self.config.image_shape[-1],
                           kernel_size=(1, 1), strides=(1, 1), activation='sigmoid', padding='same')
         ])
 
-        if self.config.input_shape != model.outputs[0].shape[1:]:
+        if self.config.image_shape != model.outputs[0].shape[1:]:
             raise ValueError(f'Autoencoder input shape {model.inputs[0].shape} '
                              f'is not identical to output shape {model.outputs[0].shape[1:]}')
 
@@ -62,8 +63,8 @@ class Autoencoder:
     def compile(self):
         self.model.compile(
             loss=self.config.loss,
-            optimizer=self.config.optimizer,
-            metrics=self.config.mertics
+            optimizer=optimizers.Adam(learning_rate=self.config.learning_rate),
+            metrics=['mse']
         )
 
     def train(self, save_final_epoch):
@@ -75,11 +76,11 @@ class Autoencoder:
         z_train_data = []
         z_val_data = []
 
-        for i in range(len(self.config.adv_data)):
+        for i in range(len(self.config.adversarial_data)):
             x_train, x_val, y_train, y_val, z_train, z_val = train_test_split(
-                self.config.adv_data[i],
-                self.config.adv_origin_data[i],
-                self.config.adv_label_data[i],
+                self.config.adversarial_data[i],
+                self.config.gt_original_data[i],
+                self.config.gt_labels_data[i],
                 test_size=self.config.valid_ratio
             )
 
@@ -99,7 +100,7 @@ class Autoencoder:
 
         logger.info(f'Length of training data {len(x_train_data)}, length of validation data {len(x_val_data)}')
 
-        self.call_backs.append(CheckClassifierAccuracy(
+        self.callbacks.append(CheckClassifierAccuracy(
             self.config.target_classifier,
             x_val_data, z_val_data, every_epoch=5
         ))
@@ -109,7 +110,7 @@ class Autoencoder:
             validation_data=(x_val_data, y_val_data),
             epochs=self.config.epochs,
             batch_size=self.config.batch_size,
-            callbacks=self.call_backs,
+            callbacks=self.callbacks,
         )
 
         reformed_train = self.model.predict(x_train_data)
@@ -125,10 +126,8 @@ class Autoencoder:
         if save_final_epoch:
             self.model.save(f'{self.checkpoint_path}_final_epoch')
 
-    def evaluate_on_target_classifier(self, x, y, load_best_model=True):
+    def evaluate_on_target_classifier(self, x, y):
         model = self.model
-        if load_best_model:
-            model = tf.keras.models.load_model(self.checkpoint_path)
 
         reformed_x = model.predict(x)
         reformed_x_pred = np.argmax(self.config.target_classifier.predict(reformed_x), axis=1)

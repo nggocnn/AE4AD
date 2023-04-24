@@ -24,10 +24,7 @@ class AdversarialConfig:
         self.labels = None
         self.limit = 0
 
-        self.image_shape = None
-
         self.input_range = [0.0, 1.0]
-
 
         self.adversarial_config = {}
 
@@ -76,9 +73,6 @@ class AdversarialConfig:
                     self.input_range = input_range
                 else:
                     logger.warning('Please check input range configuration!')
-
-            if self.general_config.__contains__(IMAGE_SHAPE):
-                self.image_shape = np.array(self.general_config[IMAGE_SHAPE], dtype='int32')
 
             logger.info(f'Range of input value is set to {str(self.input_range)}.')
 

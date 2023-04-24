@@ -23,8 +23,6 @@ class AdversarialGenerator:
         self.images = self.config.images
         self.labels = self.config.labels
 
-        self.image_shape = self.config.image_shape
-
         self.limit = int(self.config.limit)
         if self.limit > 0:
             _, counts = zip(np.unique(self.labels, axis=0, return_counts=True))
@@ -89,7 +87,7 @@ class AdversarialGenerator:
                         save_adversarial_samples(
                             os.path.join(self.output_path, f'{key}_adversarial_sample_{epsilon}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
-                            shape=self.image_shape
+                            shape=self.config.input_shape
                         )
 
             elif key == BIM:
@@ -127,7 +125,7 @@ class AdversarialGenerator:
                         save_adversarial_samples(
                             os.path.join(self.output_path, f'{key}_{epsilon}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
-                            shape=self.image_shape
+                            shape=self.config.input_shape
                         )
 
             elif key == MI_FGSM:
@@ -167,7 +165,7 @@ class AdversarialGenerator:
                         save_adversarial_samples(
                             os.path.join(self.output_path, f'{key}_adversarial_sample_{epsilon}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
-                            shape=self.image_shape
+                            shape=self.config.input_shape
                         )
 
             elif key == CW_L2:
@@ -203,7 +201,7 @@ class AdversarialGenerator:
                         save_adversarial_samples(
                             os.path.join(self.output_path, f'{key}_adversarial_sample_{conf}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
-                            shape=self.image_shape
+                            shape=self.config.input_shape
                         )
 
             elif key == GAUSS:
@@ -240,5 +238,5 @@ class AdversarialGenerator:
                         save_adversarial_samples(
                             os.path.join(self.output_path, f'{key}_adversarial_sample_{epsilon}_{suffix}.png'),
                             x_adv, x_origin, np.argmax(y_adv, axis=1), np.argmax(y_origin, axis=1),
-                            shape=self.image_shape
+                            shape=self.config.input_shape
                         )
