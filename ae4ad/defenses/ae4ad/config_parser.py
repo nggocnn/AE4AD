@@ -33,6 +33,8 @@ class AE4AD_Config:
 
         self.input_range = [0.0, 1.0]
 
+        self.data_config = None
+
         self.adversarial_folder = None
         self.gt_original_folder = None
         self.gt_labels_folder = None
@@ -47,6 +49,51 @@ class AE4AD_Config:
         self.config_parse()
 
     def config_parse(self):
+        if self.config.__contains__(GENERAL_CONFIG):
+            # load general configuration keys
+            self.general_config = self.config[GENERAL_CONFIG]
+
+            # load output folder path
+            if self.output_path is None or self.output_path == "":
+                self.output_path = DEFAULT_OUTPUT_PATH
+
+            if not os.path.exists(self.output_path):
+                os.makedirs(self.output_path)
+                logger.info(f'Created output folder {self.output_path}.')
+            elif any(os.scandir(self.output_path)):
+                logger.warning(f'Output folder {self.output_path} is not empty.')
+
+            # load targeted classifier
+            if self.general_config.__contains__(TARGET_CLASSIFIER_PATH):
+                target_classifier_path = self.general_config[TARGET_CLASSIFIER_PATH]
+
+                logger.info(f'Loading target classifier at {target_classifier_path}.')
+                classifier, classifier_name, success, message = load_model(target_classifier_path)
+
+                if not success:
+                    raise IOError(message)
+
+                logger.info(message)
+
+                classifier.summary()
+
+                self.target_classifier = classifier
+                self.classifier_name = classifier_name
+                self.image_shape = classifier.inputs[0].shape[1:]
+                self.n_classes = classifier.outputs[0].shape[1:][0]
+
+                # load range of input value
+                if self.general_config.__contains__(PIXEL_RANGE):
+                    input_range = np.array(self.general_config[PIXEL_RANGE], dtype='float32')
+                    if len(input_range) == 2:
+                        self.input_range = input_range
+                    else:
+                        logger.warning('Please check input range configuration!')
+
+                logger.info(f'Range of input value is set to {str(self.input_range)}.')
+        else:
+            raise ValueError('Not found general configurations!')
+
         if self.config.__contains__(TRAINING_CONFIG):
             self.training_config = self.config[TRAINING_CONFIG]
 
@@ -76,7 +123,7 @@ class AE4AD_Config:
                     self.loss = mse_ce_loss(self.target_classifier)
                 else:
                     logger.error(f'Loss function type has not been defined {loss_type}, set to default {self.loss}')
-            logger.info(f'Loss functions: {self.loss}')
+            logger.info(f'Loss functions: {str(self.loss)}')
 
 
             if self.training_config.__contains__(VALID_RATIO):
@@ -93,73 +140,37 @@ class AE4AD_Config:
 
             if self.training_config.__contains__(MIN_DELTA):
                 self.min_delta = float(self.training_config[MIN_DELTA]) if self.early_stopping else None
+        else:
+            raise ValueError(f'Not found training configuration!')
 
-        if self.config.__contains__(GENERAL_CONFIG):
-            # load general configuration keys
-            self.general_config = self.config[GENERAL_CONFIG]
+        if self.config.__contains__(DATA_CONFIG):
+            self.data_config = self.config[DATA_CONFIG]
 
-            # load output folder path
-            if self.output_path is None or self.output_path == "":
-                self.output_path = DEFAULT_OUTPUT_PATH
-
-            if not os.path.exists(self.output_path):
-                os.makedirs(self.output_path)
-                logger.info(f'Created output folder {self.output_path}.')
-            elif any(os.scandir(self.output_path)):
-                logger.warning(f'Output folder {self.output_path} is not empty.')
-
-            # load targeted classifier
-            if self.general_config.__contains__(TARGET_CLASSIFIER_PATH):
-                target_classifier_path = self.general_config[TARGET_CLASSIFIER_PATH]
-
-                logger.info(f'Loading target classifier at {target_classifier_path}.')
-                classifier, classifier_name, success, message = load_model(target_classifier_path)
-
-                if not success:
-                    raise IOError(message)
-
-                logger.info(message)
-
-                self.target_classifier = classifier
-                self.classifier_name = classifier_name
-                self.image_shape = classifier.inputs[0].shape[1:]
-                self.n_classes = classifier.outputs[0].shape[1:][0]
-
-                # load range of input value
-                if self.general_config.__contains__(PIXEL_RANGE):
-                    input_range = np.array(self.general_config[PIXEL_RANGE], dtype='float32')
-                    if len(input_range) == 2:
-                        self.input_range = input_range
-                    else:
-                        logger.warning('Please check input range configuration!')
-
-                logger.info(f'Range of input value is set to {str(self.input_range)}.')
-
-            if self.general_config.__contains__(ADVERSARIAL_FOLDER):
-                self.adversarial_folder = self.general_config[ADVERSARIAL_FOLDER]
+            if self.data_config.__contains__(ADVERSARIAL_FOLDER):
+                self.adversarial_folder = self.data_config[ADVERSARIAL_FOLDER]
             else:
                 raise ValueError('Not found adversarial folder!')
 
-            if self.general_config.__contains__(GT_ORIGINAL_FOLDER):
-                self.gt_original_folder = self.general_config[GT_ORIGINAL_FOLDER]
+            if self.data_config.__contains__(GT_ORIGINAL_FOLDER):
+                self.gt_original_folder = self.data_config[GT_ORIGINAL_FOLDER]
             else:
                 raise ValueError('Not found ground truth images folder!')
 
-            if self.general_config.__contains__(GT_LABELS_FOLDER):
-                self.gt_labels_folder = self.general_config[GT_LABELS_FOLDER]
+            if self.data_config.__contains__(GT_LABELS_FOLDER):
+                self.gt_labels_folder = self.data_config[GT_LABELS_FOLDER]
             else:
                 raise ValueError('Not found ground truth labels folder!')
 
             self.adversarial_data, self.gt_original_data, self.gt_labels_data = \
                 self.load_adversarial_data(self.adversarial_folder, self.gt_original_folder, self.gt_labels_folder)
 
-            if self.general_config.__contains__(ORIGINAL_IMAGES_FILE):
-                self.original_images_file = self.general_config[ORIGINAL_IMAGES_FILE]
+            if self.data_config.__contains__(ORIGINAL_IMAGES_FILE):
+                self.original_images_file = self.data_config[ORIGINAL_IMAGES_FILE]
             else:
                 raise ValueError('Not found ground original images file!')
 
-            if self.general_config.__contains__(ORIGINAL_LABELS_FILE):
-                self.original_labels_file = self.general_config[ORIGINAL_LABELS_FILE]
+            if self.data_config.__contains__(ORIGINAL_LABELS_FILE):
+                self.original_labels_file = self.data_config[ORIGINAL_LABELS_FILE]
             else:
                 raise ValueError('Not found ground original labels file!')
 
@@ -169,9 +180,8 @@ class AE4AD_Config:
             self.adversarial_data.append(original_images_data)
             self.gt_original_data.append(original_images_data)
             self.gt_labels_data.append(original_labels_data)
-
         else:
-            raise ValueError('Not found general configurations!')
+            raise ValueError(f'Not found data configurations!')
 
     def load_adversarial_data(self, adversarial_folder, gt_original_folder, gt_labels_folder):
         adversarial_filenames_list = sorted(os.listdir(adversarial_folder))
