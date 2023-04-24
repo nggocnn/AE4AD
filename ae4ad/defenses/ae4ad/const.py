@@ -29,9 +29,9 @@ MIN_DELTA = 'MIN_DELTA'
 
 LOSS = 'LOSS'
 
-MSE_CE = 'MSE_CE'
-MSE = 'MSE'
-MSE_CE_O = 'MSE_CE_0'
+MSE_CE = 'mse_ce'
+MSE = 'mse'
+MSE_CE_O = 'mse_ce_0'
 
 TRUE = 'True'
 

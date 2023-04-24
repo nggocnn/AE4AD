@@ -72,10 +72,12 @@ class AE4AD_Config:
                 loss_type = self.training_config[LOSS]
                 if loss_type == MSE:
                     self.loss = 'mse'
-                elif loss_type == MSE_CE:
+                elif loss_type == MSE_CE or loss_type == MSE_CE_O:
                     self.loss = mse_ce_loss(self.target_classifier)
                 else:
-                    logger.error(f'Loss function type has not been defined {loss_type}')
+                    logger.error(f'Loss function type has not been defined {loss_type}, set to default {self.loss}')
+            logger.info(f'Loss functions: {self.loss}')
+
 
             if self.training_config.__contains__(VALID_RATIO):
                 self.valid_ratio = float(self.training_config[VALID_RATIO])
