@@ -285,7 +285,7 @@ class AE4AD_Config:
         if len(temp_original_images) == 0 or len(temp_original_labels) == 0:
             raise ValueError(f'Error in loading data!')
 
-        if self.training_config[LOSS] == MSE_CE_O:
+        if self.training_config[LOSS] == MSE_CE:
             target_pred = np.argmax(self.target_classifier.predict(temp_original_images), axis=1).reshape(-1)
             temp_label = np.argmax(temp_original_labels, axis=1).reshape(-1)
 
@@ -293,5 +293,6 @@ class AE4AD_Config:
 
             temp_original_images = temp_original_images[true_pred_idx]
             temp_original_labels = temp_original_labels[true_pred_idx]
+
         logger.info(f'Loaded original data: {len(temp_original_labels)}')
         return temp_original_images, temp_original_labels
