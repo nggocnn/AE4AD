@@ -1,7 +1,7 @@
 import argparse
 
-from ae4ad.defenses.ae4ad.config_parser import AE4AD_Config
-from ae4ad.defenses.ae4ad.ae4ad_autoencoder import AE4AD_Autoencoder
+from src.defenses.config_parser import AE4AD_Config
+from src.defenses.autoencoder import AE4AD_Autoencoder
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from ae4ad.adversary.attacks.fgsm import FGSM
-from ae4ad.adversary.utils import compute_gradient
+from src.adversary.attacks.fgsm import FGSM
+from src.adversary.utils import compute_gradient
 
 
 class MI_FGSM(FGSM):

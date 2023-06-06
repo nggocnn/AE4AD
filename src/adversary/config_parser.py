@@ -1,8 +1,8 @@
 from configobj import ConfigObj
 
-from ae4ad.adversary.const import *
-from ae4ad.utils.logger import AE4AD_Logger
-from ae4ad.utils.utils import *
+from src.adversary.const import *
+from src.utils.logger import AE4AD_Logger
+from src.utils.utils import *
 
 logger = AE4AD_Logger().get_logger()
 

@@ -1,11 +1,9 @@
-import os
-
 from configobj import ConfigObj
 
-from ae4ad.defenses.ae4ad.const import *
-from ae4ad.defenses.losses import mse_ce_loss
-from ae4ad.utils.logger import AE4AD_Logger
-from ae4ad.utils.utils import *
+from src.defenses.const import *
+from src.defenses.losses import mse_ce_loss
+from src.utils.logger import AE4AD_Logger
+from src.utils.utils import *
 
 logger = AE4AD_Logger.get_logger()
 

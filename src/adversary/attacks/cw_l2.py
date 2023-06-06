@@ -3,8 +3,8 @@ import tensorflow as tf
 
 from tqdm import tqdm
 
-from ae4ad.adversary.utils import set_with_mask, get_or_guess_labels
-from ae4ad.utils.utils import data_filter
+from src.adversary.utils import set_with_mask, get_or_guess_labels
+from src.utils.utils import data_filter
 
 
 class CarliniWagnerL2(object):

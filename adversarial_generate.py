@@ -1,7 +1,7 @@
 import argparse
 
-from ae4ad.adversary.config_parser import AdversarialConfig
-from ae4ad.adversary.generator import AdversarialGenerator
+from src.adversary.config_parser import AdversarialConfig
+from src.adversary.generator import AdversarialGenerator
 
 
 if __name__ == '__main__':

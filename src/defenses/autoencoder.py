@@ -1,15 +1,12 @@
-import os
-
 import numpy as np
-import tensorflow as tf
 
 from tensorflow.keras import models, layers, optimizers, callbacks
 
 from sklearn.model_selection import train_test_split
 
-from ae4ad.defenses.ae4ad.config_parser import AE4AD_Config
-from ae4ad.utils.logger import AE4AD_Logger
-from ae4ad.defenses.callbacks import CheckClassifierAccuracy
+from src.defenses.config_parser import AE4AD_Config
+from src.utils.logger import AE4AD_Logger
+from src.defenses.callbacks import CheckClassifierAccuracy
 
 
 logger = AE4AD_Logger.get_logger()

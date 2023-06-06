@@ -8,19 +8,16 @@ from tensorflow.keras.utils import to_categorical
 from tqdm import tqdm
 
 if __name__ == '__main__':
-    # classifier = load_model("D:\\Things\\PyProject\\AE4AD\\Data\\ADV_Training\\cifar10\\cifar10_adv_cnn_model_0.00784313725490196.h5")
-    # classifier = load_model("D:\\Things\\PyProject\\AE4AD\\Data\\ADV_Training\\cifar10\\cifar10_adv_cnn_model_0.0196078431372549.h5")
-    classifier = load_model("D:\\Things\\PyProject\\AE4AD\\Data\\ADV_Training\\cifar10\\cifar10_adv_cnn_model_0.0392156862745098.h5")
+    classifier = load_model("cifar10_cnn_model.h5")
+    ae4ad_reformer = load_model("autoencoder_cnn_model", compile=False)
 
     summary_first_time = True
-    images_path = "D:\\Things\\PyProject\\AE4AD\\Data\\ADV\\cifar10_test_adv\\adv"
-    labels_path = "D:\\Things\\PyProject\\AE4AD\\Data\\ADV\\cifar10_test_adv\\label"
+    images_path = "test_adv/adv"
+    labels_path = "test_adv/label"
 
-    result_path = "D:\\Things\\PyProject\\AE4AD\\Data\\ADV_Training\\"
+    result_path = "AE4AD/"
 
-    # summary_result_path = result_path + "cifar10_adv_training_summary_0.0078.csv"
-    # summary_result_path = result_path + "cifar10_adv_training_summary_0.0196.csv"
-    summary_result_path = result_path + "cifar10_adv_training_summary_0.0392.csv"
+    summary_result_path = result_path + "ae4ad_summary.csv"
 
     image_files_list = sorted(os.listdir(images_path))
     label_files_list = sorted(os.listdir(labels_path))
@@ -31,7 +28,8 @@ if __name__ == '__main__':
         if len(labels.shape) == 2:
             labels = np.argmax(labels, axis=1)
 
-        pred = np.argmax(classifier.predict(images), axis=1)
+        reformed_image = ae4ad_reformer.predict(images)
+        pred = np.argmax(classifier.predict(reformed_image), axis=1)
         acc = (pred == labels).sum() / len(images)
 
         summary_results = pd.DataFrame({
@@ -46,10 +44,11 @@ if __name__ == '__main__':
         else:
             summary_results.to_csv(summary_result_path, mode='a', header=False, index=True, float_format='%.4f')
 
-    test_images = np.load("D:\\Things\\PyProject\\AE4AD\\Data\\CNN\\cifar10_classifier\\cifar10_test_data.npy")
-    test_labels = np.load("D:\\Things\\PyProject\\AE4AD\\Data\\CNN\\cifar10_classifier\\cifar10_test_label.npy")
+    test_images = np.load("test_data.npy")
+    test_labels = np.load("test_label.npy")
 
-    pred = np.argmax(classifier.predict(test_images), axis=1)
+    reformed_image = ae4ad_reformer.predict(test_images)
+    pred = np.argmax(classifier.predict(reformed_image), axis=1)
     acc = (pred == test_labels).sum() / len(test_images)
 
     summary_results = pd.DataFrame({

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from ae4ad.adversary.attacks.fgsm import FGSM
+from src.adversary.attacks.fgsm import FGSM
 
 
 class BIM(FGSM):

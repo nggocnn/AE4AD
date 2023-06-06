@@ -3,7 +3,7 @@ import tensorflow as tf
 
 from tqdm import tqdm
 
-from ae4ad.utils.utils import data_filter
+from src.utils.utils import data_filter
 
 
 class AdversarialGauss:

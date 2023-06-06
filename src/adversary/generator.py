@@ -4,11 +4,11 @@ import numpy as np
 
 from datetime import datetime
 
-from ae4ad.adversary.attacks import fgsm, bim, mi_fgsm, cw_l2, gauss
-from ae4ad.adversary.config_parser import AdversarialConfig
-from ae4ad.adversary.const import *
-from ae4ad.adversary.utils import export_adversarial_npy, save_adversarial_samples
-from ae4ad.utils.logger import AE4AD_Logger
+from src.adversary.attacks import fgsm, bim, mi_fgsm, cw_l2, gauss
+from src.adversary.config_parser import AdversarialConfig
+from src.adversary.const import *
+from src.adversary.utils import export_adversarial_npy, save_adversarial_samples
+from src.utils.logger import AE4AD_Logger
 
 logger = AE4AD_Logger.get_logger()
 
