@@ -1,5 +1,5 @@
 # AE4AD - Autoencoder for Adversarial Defense
-This is the code repository for AE4AD - Autoencoder for Adversarial Defense. - [Report]([https://link-url-here.org](https://www.overleaf.com/read/gdyzfnyhnvvr))
+This is the code repository for AE4AD - Autoencoder for Adversarial Defense. - [Report](https://www.overleaf.com/read/gdyzfnyhnvvr)
 
 AE4AD is a tool to build adversarial (de-noise) defense models for image classification tasks.
 
